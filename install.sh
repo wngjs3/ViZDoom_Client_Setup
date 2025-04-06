@@ -37,7 +37,7 @@ source venv/bin/activate
 # Install required Python packages
 echo "===== Installing Python packages ====="
 pip install --upgrade pip
-pip install numpy opencv-python matplotlib vizdoom pillow requests
+pip install numpy opencv-python matplotlib vizdoom pillow requests webdataset
 
 # Set execution permissions
 echo "===== Setting up execution permissions ====="
