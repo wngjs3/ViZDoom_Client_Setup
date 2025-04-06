@@ -14,6 +14,11 @@ chmod +x install.sh
 ./install.sh
 ```
 
+The script will:
+- Set up a Python virtual environment (venv)
+- Install all required dependencies
+- Create a convenient run script for future use
+
 ### Method 2: Python Script (All Operating Systems)
 ```bash
 # Run the Python script
@@ -23,8 +28,17 @@ python install.py
 ## Running the Client
 After installation, you can run the client with:
 ```bash
-cd ViZDoom/client
+# Activate the virtual environment
+source venv/bin/activate
+
+# Navigate to client directory and run
+cd client_files
 python client.py
+```
+
+Alternatively, you can use the provided run script:
+```bash
+./run_client.sh
 ```
 
 You can also run the client directly at the end of the installation process.
@@ -58,6 +72,19 @@ The ESP (Extra Sensory Perception) feature displays:
 ### Common Issues
 - **Package installation errors**: Try installing the required packages manually:
   ```bash
+  # Activate the virtual environment first
+  source venv/bin/activate
+  
+  # Then install packages
+  pip install numpy opencv-python matplotlib vizdoom pillow requests
+  ```
+
+- **Virtual environment issues**: If you encounter problems with the virtual environment:
+  ```bash
+  # Recreate the virtual environment
+  rm -rf venv
+  python3 -m venv venv
+  source venv/bin/activate
   pip install numpy opencv-python matplotlib vizdoom pillow requests
   ```
 
@@ -73,8 +100,8 @@ brew install cmake boost sdl2 wget
 
 ## Advanced Settings
 If additional settings are needed, please modify the following files:
-- `cig.cfg`: Game-related settings
-- `_vizdoom.ini`: ViZDoom engine settings
+- `client_files/cig.cfg`: Game-related settings
+- `client_files/_vizdoom.ini`: ViZDoom engine settings
 
 ---
 If you have any questions, please contact the developer. 

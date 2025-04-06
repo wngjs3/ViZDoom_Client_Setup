@@ -6,7 +6,12 @@ import argparse
 from random import choice
 import cv2
 import requests
-from utils import normalize_angle_deg, get_all_objects_info, draw_esp_overlay
+from utils import (
+    normalize_angle_deg,
+    get_all_objects_info,
+    draw_esp_overlay,
+    sync_vizdoom_ini,
+)
 import vizdoom as vzd
 import numpy as np
 import tkinter as tk
@@ -68,6 +73,8 @@ def setup_input_controls(game):
     game.add_game_args("+bind c +crouch")  # C key for crouch
     game.add_game_args("+bind ctrl +crouch")  # Ctrl key for crouch
     game.add_game_args("+bind capslock +crouch")  # Capslock key for crouch
+    game.add_game_args("+viz_respawn_delay 3")
+    game.add_game_args("-record multi_rec.lmp")
 
 
 def setup_game_variables(game):
@@ -524,6 +531,8 @@ class ServerConnectionGUI:
         if ":" in host:
             host = host.split(":")[0]
 
+        self.status_label.config(text="ini file sync...")
+
         connection_info = {
             "host_address": host,
             "port": self.selected_server["port"],
@@ -612,6 +621,8 @@ class ServerConnectionGUI:
         }
         player_color = color_map.get(self.color_var.get(), 1)  # Default to blue
 
+        self.status_label.config(text="ini file sync...")
+
         # Change button text and color
         self.singleplayer_button.config(
             text="Starting Single Player Game...",
@@ -665,6 +676,10 @@ def player_client(
         use_esp: Whether to use ESP overlay
         gui_instance: ServerConnectionGUI instance for callbacks
     """
+
+    print("[INFO] ini file sync...")
+    sync_vizdoom_ini()
+
     # Initialize the game
     game = vzd.DoomGame()
     game_initialized = False
@@ -972,6 +987,10 @@ def play_single_player(
         use_esp: Whether to use ESP overlay
         gui_instance: ServerConnectionGUI instance for callbacks
     """
+
+    print("[INFO] INI 파일 동기화 중...")
+    sync_vizdoom_ini()
+
     # Initialize the game
     game = vzd.DoomGame()
     game_initialized = False
