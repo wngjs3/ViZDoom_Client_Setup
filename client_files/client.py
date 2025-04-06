@@ -58,24 +58,6 @@ def setup_input_controls(game):
     for button in buttons:
         game.add_available_button(button)
 
-    # Key bindings
-    print("[INFO] Setting up key bindings...")
-    game.add_game_args("+bind e +use")  # Bind E key to use
-
-    # WASD movement key bindings
-    game.add_game_args("+bind w +forward")
-    game.add_game_args("+bind s +back")
-    game.add_game_args("+bind a +moveleft")
-    game.add_game_args("+bind d +moveright")
-
-    # Jump and crouch key bindings
-    game.add_game_args("+bind space +jump")  # Spacebar for jump only
-    game.add_game_args("+bind c +crouch")  # C key for crouch
-    game.add_game_args("+bind ctrl +crouch")  # Ctrl key for crouch
-    game.add_game_args("+bind capslock +crouch")  # Capslock key for crouch
-    game.add_game_args("+viz_respawn_delay 3")
-    game.add_game_args("-record multi_rec.lmp")
-
 
 def setup_game_variables(game):
     """Set up game variables"""
