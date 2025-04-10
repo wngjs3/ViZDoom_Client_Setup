@@ -6,7 +6,12 @@ import argparse
 from random import choice
 import cv2
 import requests
-from utils import normalize_angle_deg, get_all_objects_info, draw_esp_overlay, sync_vizdoom_ini
+from utils import (
+    normalize_angle_deg,
+    get_all_objects_info,
+    draw_esp_overlay,
+    sync_vizdoom_ini,
+)
 import vizdoom as vzd
 import numpy as np
 import tkinter as tk
@@ -508,7 +513,6 @@ class ServerConnectionGUI:
         if ":" in host:
             host = host.split(":")[0]
 
-        
         self.status_label.config(text="ini file sync...")
 
         connection_info = {
@@ -599,7 +603,6 @@ class ServerConnectionGUI:
         }
         player_color = color_map.get(self.color_var.get(), 1)  # Default to blue
 
-        
         self.status_label.config(text="ini file sync...")
 
         # Change button text and color
@@ -658,7 +661,7 @@ def player_client(
 
     print("[INFO] ini file sync...")
     sync_vizdoom_ini()
-    
+
     # Initialize the game
     game = vzd.DoomGame()
     game_initialized = False
@@ -969,7 +972,7 @@ def play_single_player(
 
     print("[INFO] INI 파일 동기화 중...")
     sync_vizdoom_ini()
-    
+
     # Initialize the game
     game = vzd.DoomGame()
     game_initialized = False
@@ -1294,7 +1297,7 @@ if __name__ == "__main__":
         )
     else:
         # Run in GUI mode
-        dashboard_url = args.dashboard or "http://34.64.56.178:8080"
+        dashboard_url = args.dashboard or "http://34.22.89.43:8080"
         root = tk.Tk()
         app = ServerConnectionGUI(root, dashboard_url)
         root.mainloop()
