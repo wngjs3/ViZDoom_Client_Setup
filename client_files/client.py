@@ -178,7 +178,7 @@ class ESPOverlayWindow:
 
 
 class ServerConnectionGUI:
-    def __init__(self, root, dashboard_url="http://34.64.56.178:8080"):
+    def __init__(self, root, dashboard_url="http://34.64.207.205:8080/"):
         self.root = root
         # Remove trailing slash from URL if present
         self.dashboard_url = dashboard_url.rstrip("/")
@@ -1297,7 +1297,7 @@ if __name__ == "__main__":
         )
     else:
         # Run in GUI mode
-        dashboard_url = args.dashboard or "http://34.22.89.43:8080"
+        dashboard_url = args.dashboard or "http://34.64.207.205:8080/"
         root = tk.Tk()
         app = ServerConnectionGUI(root, dashboard_url)
         root.mainloop()
