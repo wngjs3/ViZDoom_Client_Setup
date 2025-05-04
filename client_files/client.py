@@ -21,6 +21,7 @@ import json
 import time
 from PIL import Image, ImageTk  # Add PIL
 import gc  # Explicit garbage collection management
+from datetime import datetime
 
 # Platform check for handling autorelease pool issues on macOS
 is_macos = sys.platform == "darwin"
@@ -178,7 +179,7 @@ class ESPOverlayWindow:
 
 
 class ServerConnectionGUI:
-    def __init__(self, root, dashboard_url="http://34.64.207.205:8080/"):
+    def __init__(self, root, dashboard_url="http://34.64.208.223:8080/"):
         self.root = root
         # Remove trailing slash from URL if present
         self.dashboard_url = dashboard_url.rstrip("/")
@@ -616,7 +617,8 @@ class ServerConnectionGUI:
         self.refresh_button.config(state=tk.DISABLED)
 
         # Status display
-        self.status_label.config(text="Starting single player game...")
+        status_text = "Starting single player game... (Recording enabled)"
+        self.status_label.config(text=status_text)
 
         # Start game thread
         self.is_connected = True
@@ -629,6 +631,7 @@ class ServerConnectionGUI:
                 "episode_timeout": 10,
                 "use_esp": use_esp,
                 "gui_instance": self,
+                "record_file": "",  # 빈 문자열로 설정하여 자동 파일명 생성
             },
         )
         self.game_thread.daemon = True  # Terminate with main program
@@ -957,6 +960,7 @@ def play_single_player(
     episode_timeout=10,
     use_esp=False,
     gui_instance=None,
+    record_file="",  # 사용자 지정 레코딩 파일명
 ):
     """
     Creates a single player VizDoom game.
@@ -968,6 +972,7 @@ def play_single_player(
         episode_timeout: Game timeout in minutes
         use_esp: Whether to use ESP overlay
         gui_instance: ServerConnectionGUI instance for callbacks
+        record_file: Optional custom file name for recording
     """
 
     print("[INFO] INI 파일 동기화 중...")
@@ -986,6 +991,26 @@ def play_single_player(
             gc.collect()
         except:
             pass
+
+    # 싱글플레이어 모드에서는 항상 레코딩
+    # 녹화 파일 저장 디렉토리 생성
+    recordings_dir = os.path.join(os.getcwd(), "recordings")
+    os.makedirs(recordings_dir, exist_ok=True)
+
+    # 녹화 파일명 생성 (사용자 지정 또는 타임스탬프 포함)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if record_file:
+        base_name = record_file
+        record_file_name = f"{base_name}_{timestamp}"
+    else:
+        record_file_name = f"single_player_{timestamp}"
+
+    if not record_file_name.endswith(".lmp"):
+        record_file_name += ".lmp"
+
+    # 전체 경로 생성
+    recording_path = os.path.join(recordings_dir, record_file_name)
+    print(f"[INFO] 게임 레코딩이 활성화되었습니다. 저장 경로: {recording_path}")
 
     # Explicitly specify OpenCV backend (QT may be more stable on macOS)
     try:
@@ -1019,11 +1044,15 @@ def play_single_player(
         game.set_window_visible(window_visible)
 
         # Set map to map01
-        game.set_doom_map("map02")
+        game.set_doom_map("map04")
 
         # Additional settings to make the game playable
         game.add_game_args(f"-skill 3 +name {name} +colorset {color}")
         game.add_game_args(f"+timelimit {episode_timeout}")
+
+        # 레코딩 설정 - 항상 활성화
+        game.add_game_args(f"-record {recording_path}")
+        game.add_game_args("+cl_capfps 0")  # 프레임 레이트 제한 해제
 
         # Widescreen support
         game.add_game_args("+vid_aspect 16:9")
@@ -1037,6 +1066,9 @@ def play_single_player(
         game.init()
         game_initialized = True
         print(f"Game started as {name}")
+
+        # 레코딩 상태 표시
+        print(f"[INFO] 게임 레코딩이 시작되었습니다.")
 
         # Set up object info and automap after initialization
         setup_object_info(game)
@@ -1065,6 +1097,9 @@ def play_single_player(
                 print(f"[ERROR] Failed to create ESP overlay window: {str(e)}")
                 esp_enabled = False
                 esp_window = None
+
+        # 게임 시작 시간 기록
+        start_time = datetime.now()
 
         # Main game loop
         try:
@@ -1162,6 +1197,21 @@ def play_single_player(
             print("Episode finished!")
             print(f"Player frags: {game.get_game_variable(vzd.GameVariable.FRAGCOUNT)}")
 
+            # 게임 종료 시간 및 플레이 시간 계산
+            end_time = datetime.now()
+            game_duration = (end_time - start_time).total_seconds() / 60.0  # 분 단위
+
+            print(f"게임 플레이 시간: {round(game_duration, 2)} 분")
+
+            # 레코딩 파일 정보 출력
+            if os.path.exists(recording_path):
+                print(f"게임 레코딩이 저장되었습니다: {recording_path}")
+                # 레코딩 파일 크기 출력 (MB 단위)
+                file_size_mb = os.path.getsize(recording_path) / (1024 * 1024)
+                print(f"레코딩 파일 크기: {file_size_mb:.2f} MB")
+            else:
+                print(f"[WARNING] 레코딩 파일이 생성되지 않았습니다: {recording_path}")
+
         except KeyboardInterrupt:
             print("\nInterrupted by user")
 
@@ -1256,6 +1306,9 @@ if __name__ == "__main__":
 
     sys.excepthook = handle_exception
 
+    # datetime 모듈 임포트
+    from datetime import datetime
+
     # Set QT_API environment variable before creating QApplication
     try:
         # QT5 backend settings
@@ -1281,6 +1334,13 @@ if __name__ == "__main__":
     parser.add_argument("--timeout", type=int, help="Game timeout in minutes")
     parser.add_argument("--esp", action="store_true", help="Enable ESP overlay")
     parser.add_argument("--dashboard", type=str, help="Dashboard server URL")
+    # 레코딩 관련 인자에서 --record 옵션 제거하고 레코딩 파일명만 남김
+    parser.add_argument(
+        "--record_file", type=str, help="Recording file name (without extension)"
+    )
+    parser.add_argument(
+        "--singleplayer", action="store_true", help="Start single player game directly"
+    )
 
     args = parser.parse_args()
 
@@ -1295,9 +1355,19 @@ if __name__ == "__main__":
             episode_timeout=args.timeout or 1,
             use_esp=args.esp or False,
         )
+    # 싱글플레이어 모드 직접 실행
+    elif args.singleplayer:
+        play_single_player(
+            name=args.name or "Player",
+            color=args.color or 1,
+            window_visible=not args.hidden,
+            episode_timeout=args.timeout or 10,
+            use_esp=args.esp or False,
+            record_file=args.record_file or "",
+        )
     else:
         # Run in GUI mode
-        dashboard_url = args.dashboard or "http://34.64.207.205:8080/"
+        dashboard_url = args.dashboard or "http://34.64.208.223:8080/"
         root = tk.Tk()
         app = ServerConnectionGUI(root, dashboard_url)
         root.mainloop()
