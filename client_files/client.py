@@ -1044,7 +1044,7 @@ def play_single_player(
         game.set_window_visible(window_visible)
 
         # Set map to map01
-        game.set_doom_map("map04")
+        game.set_doom_map("map01")
 
         # Additional settings to make the game playable
         game.add_game_args(f"-skill 3 +name {name} +colorset {color}")
